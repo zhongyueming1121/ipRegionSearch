@@ -12,6 +12,11 @@ ipRegionLen humanSizeOf:5.5 MB
 +---Done, search complished
 +---Statistics, Error count = 0, Total line = 2882675, Fail ratio = 0.0%
 +---Cost time: 2967ms
+
+结构示意图：
+
+[![结构示意图](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/ipsearch.png "结构示意图")](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/ipsearch.png "结构示意图")
+
 ```
 pom依赖: 
 ```$xslt
@@ -43,5 +48,3 @@ pom依赖:
          </dependency>
      </dependencies>
 ```
-结构示意图：
-[![结构示意图](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/ipsearch.png "结构示意图")](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/ipsearch.png "结构示意图")
