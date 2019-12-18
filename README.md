@@ -7,8 +7,8 @@ github: [ipRegionSearch](https://github.com/zhongyueming1121/ipRegionSearch "ipR
 
 功能&执行步骤：
  - Adapter.java ---转换数据
- - DatMaker.java---生成db数据
- - Searcher.java---查找IP
+ - DatMaker.java ---生成db数据
+ - Searcher.java ---查找IP
 
 280万条IP数据:
 ```$xslt
