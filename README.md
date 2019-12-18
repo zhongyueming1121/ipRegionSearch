@@ -6,7 +6,7 @@ github: [ipRegionSearch](https://github.com/zhongyueming1121/ipRegionSearch "ipR
 280万条IP数据:
 ```$xslt
 ipRegions humanSizeOf:11 MB
-dbBinStr humanSizeOf:1.7 MB
+dataRegion humanSizeOf:1.7 MB
 ipRegions humanSizeOf:11 MB
 ipRegionLen humanSizeOf:5.5 MB
 +---Done, search complished

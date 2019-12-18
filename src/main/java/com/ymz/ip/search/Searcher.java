@@ -74,7 +74,7 @@ public class Searcher implements IpSearchConstant {
             String humanReadableUnits3 = RamUsageEstimator.humanReadableUnits(sizeOfCollection3);
             String humanReadableUnits4 = RamUsageEstimator.humanReadableUnits(sizeOfCollection4);
             System.out.println("ipRegions humanSizeOf:" + humanReadableUnits1);
-            System.out.println("dbBinStr humanSizeOf:" + humanReadableUnits2);
+            System.out.println("dataRegion humanSizeOf:" + humanReadableUnits2);
             System.out.println("ipRegions humanSizeOf:" + humanReadableUnits3);
             System.out.println("ipRegionLen humanSizeOf:" + humanReadableUnits4);
             firstSearch = false;
