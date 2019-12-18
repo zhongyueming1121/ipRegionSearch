@@ -3,6 +3,13 @@
 
 github: [ipRegionSearch](https://github.com/zhongyueming1121/ipRegionSearch "ipRegionSearch")
 
+版权原因，不提供完整ip库
+
+功能&执行步骤：
+ - Adapter.java ---转换数据
+ - DatMaker.java---生成db数据
+ - Searcher.java---查找IP
+
 280万条IP数据:
 ```$xslt
 ipRegions humanSizeOf:11 MB
