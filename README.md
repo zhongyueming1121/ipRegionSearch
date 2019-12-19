@@ -27,7 +27,7 @@ ipRegionLen humanSizeOf:5.5 MB
 
 索引示意图：
 
-[![索引示意图](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/indexing.png "索引示意图")](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/indexing.png "索引示意图")
+[![索引示意图](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/indexing01.png "索引示意图")](https://github.com/zhongyueming1121/ipRegionSearch/blob/master/doc/indexing01.png "索引示意图")
 
 
 结构示意图：
