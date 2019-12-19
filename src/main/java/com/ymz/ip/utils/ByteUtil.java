@@ -3,6 +3,9 @@ package com.ymz.ip.utils;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Objects;
 
 /**
@@ -214,7 +217,7 @@ public class ByteUtil {
      * convert an 8-byte byte array into a 64-bit long value
      *
      * @param byteArray
-     * @return 转换后的long型数值
+     * @return the converted long value
      */
     public static long byteArrayToLong(byte[] byteArray) {
         return ((((long) byteArray[0] & 0xff) << 56)
@@ -308,7 +311,24 @@ public class ByteUtil {
         return file;
     }
 
-    public static String getPath(String fileName){
+    /**
+     * fileDel
+     *
+     * @param path
+     * @return
+     */
+    public static void fileDel(String path) {
+        try {
+            File file = new File(path);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    public static String getPath(String fileName) {
         return Objects.requireNonNull(ByteUtil.class.getClassLoader().getResource("")).getPath() + fileName;
     }
 
@@ -387,5 +407,28 @@ public class ByteUtil {
         } else {
             return true;
         }
+    }
+
+    /**
+     * @param filename
+     * @return
+     */
+    public static byte[] fileToByteArray(String filename) {
+
+        FileChannel fc = null;
+        try {
+            fc = new RandomAccessFile(filename, "r").getChannel();
+            MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).load();
+            byte[] result = new byte[(int) fc.size()];
+            if (byteBuffer.remaining() > 0) {
+                byteBuffer.get(result, 0, byteBuffer.remaining());
+            }
+            return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            ezIOClose(fc);
+        }
+        return null;
     }
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.ymz.ip.model.DataBlock;
 import com.ymz.ip.model.IpSearchConstant;
 import com.ymz.ip.utils.ByteUtil;
+import com.ymz.ip.utils.GZipUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.util.RamUsageEstimator;
 
@@ -109,6 +110,9 @@ public class Searcher implements IpSearchConstant {
      * load data into memory
      */
     private static void loadFileToMemoryMode() {
+        if (GZIP) {
+            GZipUtils.decompress(ByteUtil.getPath(SEARCH_DB + GZipUtils.EXT), false);
+        }
         RandomAccessFile raf = null;
         try {
             long sTime = System.currentTimeMillis();
@@ -130,20 +134,7 @@ public class Searcher implements IpSearchConstant {
             raf.seek(dataEndPtr);
             raf.readFully(searchInfoBytes, 0, searchInfoBytes.length);
             // deserialization
-            List<ArrayList> jsonArray = JSONArray.parseArray(new String(searchInfoBytes, StandardCharsets.UTF_8), ArrayList.class);
-            ArrayList arrayList0 = jsonArray.get(0);
-            ArrayList arrayList1 = jsonArray.get(1);
-            ArrayList arrayList2 = jsonArray.get(2);
-            ipSegments = new int[arrayList0.size()];
-            ipRegionPtr = new int[arrayList1.size()];
-            ipRegionLen = new short[arrayList2.size()];
-            for (int i = 0; i < arrayList0.size(); i++) {
-                ipSegments[i] = (int) arrayList0.get(i);
-            }
-            for (int i = 0; i < arrayList1.size(); i++) {
-                ipRegionPtr[i] = (int) arrayList1.get(i);
-                ipRegionLen[i] = (short) (int) arrayList2.get(i);
-            }
+            deserialization(searchInfoBytes);
             long eTime = System.currentTimeMillis();
             log.info("load file cost time: " + (eTime - sTime) + "ms");
             memory_mode_load = true;
@@ -151,6 +142,27 @@ public class Searcher implements IpSearchConstant {
             throw new RuntimeException("load file error.", o);
         } finally {
             ByteUtil.ezIOClose(raf);
+            if (GZIP) {
+                ByteUtil.fileDel(ByteUtil.getPath(SEARCH_DB));
+            }
+        }
+
+    }
+
+    private static void deserialization(byte[] searchInfoBytes) {
+        List<ArrayList> jsonArray = JSONArray.parseArray(new String(searchInfoBytes, StandardCharsets.UTF_8), ArrayList.class);
+        ArrayList arrayList0 = jsonArray.get(0);
+        ArrayList arrayList1 = jsonArray.get(1);
+        ArrayList arrayList2 = jsonArray.get(2);
+        ipSegments = new int[arrayList0.size()];
+        ipRegionPtr = new int[arrayList1.size()];
+        ipRegionLen = new short[arrayList2.size()];
+        for (int i = 0; i < arrayList0.size(); i++) {
+            ipSegments[i] = (int) arrayList0.get(i);
+        }
+        for (int i = 0; i < arrayList1.size(); i++) {
+            ipRegionPtr[i] = (int) arrayList1.get(i);
+            ipRegionLen[i] = (short) (int) arrayList2.get(i);
         }
     }
 }

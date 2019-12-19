@@ -11,4 +11,5 @@ public interface IpSearchConstant {
     String SEARCH_DB = "search.db";
     String ERROR_LOG = "error_log.txt";
     boolean devDebug = true;
+    boolean GZIP = true;
 }

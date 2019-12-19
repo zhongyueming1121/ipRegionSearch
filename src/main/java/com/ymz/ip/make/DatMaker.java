@@ -5,6 +5,7 @@ import com.ymz.ip.model.DataBlock;
 import com.ymz.ip.model.IndexBlock;
 import com.ymz.ip.model.IpSearchConstant;
 import com.ymz.ip.utils.ByteUtil;
+import com.ymz.ip.utils.GZipUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
@@ -118,7 +119,14 @@ public class DatMaker implements IpSearchConstant {
             ByteUtil.write32Long(headBlockBytes, 4, ipSegmentsEndPrt);
             raf.seek(0L);
             raf.write(headBlockBytes);
+            raf.close();
+            raf = null;
             log.info("|--[Ok]");
+            if (GZIP) {
+                log.info("+--Try to gzip ... ");
+                GZipUtils.compress(tagDbFilePath,true);
+                log.info("|--[Ok]");
+            }
             //print the copyright and the release timestamp info
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
