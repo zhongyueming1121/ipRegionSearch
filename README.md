@@ -1,6 +1,10 @@
 # ipRegionSearch
 一个高性能的低内存消耗的离线IP溯源工具
 
+生成文件小：280万条IP数据,生成db.gz文件仅18.3MB
+
+现只有内存模式，后续增加内存+磁盘模式，B+Tree索引，压缩内存使用
+
 github: [ipRegionSearch](https://github.com/zhongyueming1121/ipRegionSearch "ipRegionSearch")
 
 版权原因，不提供完整ip库
