@@ -1,6 +1,7 @@
 package com.ymz.ip.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -9,7 +10,8 @@ import java.io.Serializable;
  *
  * @author ymz
  */
-@Data
+@Getter
+@Setter
 public class DataBlock implements Serializable {
     /**
      * region address
@@ -36,6 +38,17 @@ public class DataBlock implements Serializable {
     @Override
     public String toString() {
         return region;
+    }
+
+    public IPInfoDataVO getIPInfoDataVO() {
+        String region = this.getRegion();
+        String[] split = region.split("\\|");
+        IPInfoDataVO ipInfoDataVO = new IPInfoDataVO();
+        ipInfoDataVO.setCountry("0".equals(split[0]) ? "" : split[0]);
+        ipInfoDataVO.setProvince("0".equals(split[1]) ? "" : split[1]);
+        ipInfoDataVO.setCity("0".equals(split[2]) ? "" : split[2]);
+        ipInfoDataVO.setOperators("0".equals(split[3]) ? "" : split[3]);
+        return ipInfoDataVO;
     }
 
 }

@@ -113,7 +113,7 @@ public abstract class GZipUtils {
      * @param path
      * @throws Exception
      */
-    public static void compress(String path){
+    public static void compress(String path) {
         compress(path, true);
     }
 

@@ -1,7 +1,8 @@
 package com.ymz.ip.model;
 
 import com.ymz.ip.utils.ByteUtil;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -10,7 +11,8 @@ import java.io.Serializable;
  *
  * @author ymz
  */
-@Data
+@Getter
+@Setter
 public class IndexBlock implements Serializable {
     /**
      * start ip address
@@ -69,11 +71,6 @@ public class IndexBlock implements Serializable {
         ByteUtil.bytesArrPutOffTag(b, 8, bytesDataPtr);
         ByteUtil.bytesArrPutOffTag(b, 12, bytesDataLen);
         return b;
-    }
-
-    public byte[] getPtrBytes() {
-        // 4bytes data ptr
-        return ByteUtil.longTo32ByteArray(dataPtr);
     }
 
     public String print() {

@@ -2,8 +2,8 @@ package com.ymz.ip.make;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ymz.ip.model.DataBlock;
+import com.ymz.ip.model.IPSearchConstant;
 import com.ymz.ip.model.IndexBlock;
-import com.ymz.ip.model.IpSearchConstant;
 import com.ymz.ip.utils.ByteUtil;
 import com.ymz.ip.utils.GZipUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import java.util.*;
  * @date 2019-12-16 00:51
  **/
 @Slf4j
-public class DatMaker implements IpSearchConstant {
+public class DatMaker implements IPSearchConstant {
     private LinkedList<IndexBlock> indexPool = new LinkedList<>();
     /**
      * region and data ptr mapping data
@@ -33,7 +33,7 @@ public class DatMaker implements IpSearchConstant {
      * @param tagDbFilePath
      * @param srcFilePath
      */
-    public void make(String tagDbFilePath, String srcFilePath) {
+    protected void make(String tagDbFilePath, String srcFilePath) {
         log.info("|--tagDbFilePath: " + tagDbFilePath);
         log.info("|--srcFilePath: " + srcFilePath);
         System.out.println();
@@ -87,10 +87,9 @@ public class DatMaker implements IpSearchConstant {
             log.info("|--Reader lines: " + count);
             log.info("|--Data file pointer: " + raf.getFilePointer() + "\n");
 
-            int[] ipSegments = new int[indexPool.size() * 2];
-            int[] ipRegionPtr = new int[indexPool.size()];
-            short[] ipRegionLen = new short[indexPool.size()];
-
+            Integer[] ipSegments = new Integer[indexPool.size() * 2];
+            Integer[] ipRegionPtr = new Integer[indexPool.size()];
+            Integer[] ipRegionLen = new Integer[indexPool.size()];
             int index = 0;
             int ipRegionPtrIndex = 0;
             int ipRegionLenIndex = 0;
@@ -98,14 +97,18 @@ public class DatMaker implements IpSearchConstant {
                 ipSegments[index++] = block.getStartIp();
                 ipSegments[index++] = block.getEndIp();
                 ipRegionPtr[ipRegionPtrIndex++] = (int) block.getDataPtr();
-                ipRegionLen[ipRegionLenIndex++] = block.getDataLen();
+                ipRegionLen[ipRegionLenIndex++] = (int) block.getDataLen();
             }
             // serialize ipsegments
-            List<Object> list = new ArrayList<>(3);
+            List<Integer[]> list = new ArrayList<>(3);
             list.add(ipSegments);
             list.add(ipRegionPtr);
             list.add(ipRegionLen);
-            byte[] searchInfoBytes = JSONArray.toJSONBytes(list);
+            String jsonString = JSONArray.toJSONString(list);
+            log.info("+--Try to Deflater & Inflater zip jsonString ... ");
+            // Deflater & Inflater zip
+            byte[] searchInfoBytes = ByteUtil.zipString(jsonString);
+            log.info("|--[Ok]");
             // data end prt
             long dataEndPrt = raf.getFilePointer();
             log.info("+--Try to write searchInfo block ... ");
@@ -124,13 +127,13 @@ public class DatMaker implements IpSearchConstant {
             log.info("|--[Ok]");
             if (GZIP) {
                 log.info("+--Try to gzip ... ");
-                GZipUtils.compress(tagDbFilePath,true);
+                GZipUtils.compress(tagDbFilePath, true);
                 log.info("|--[Ok]");
             }
             //print the copyright and the release timestamp info
             Calendar cal = Calendar.getInstance();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
-            String copyright = "Created by ymz at " + dateFormat.format(cal.getTime());
+            String copyright = "Created by [https://github.com/zhongyueming1121/ipRegionSearch] at " + dateFormat.format(cal.getTime());
             log.info("|--[copyright] " + copyright);
             log.info("|--[Ok]");
         } catch (Exception e) {

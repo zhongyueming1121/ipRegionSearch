@@ -2,11 +2,10 @@ package com.ymz.ip.search;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ymz.ip.model.DataBlock;
-import com.ymz.ip.model.IpSearchConstant;
+import com.ymz.ip.model.IPSearchConstant;
 import com.ymz.ip.utils.ByteUtil;
 import com.ymz.ip.utils.GZipUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.lucene.util.RamUsageEstimator;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,13 +18,12 @@ import java.util.List;
  * Searcher
  *
  * @author ymz
- * @date 2019-12-16 02:13
+ * @date 2019-12-16 01:13
  **/
 @Slf4j
-public class Searcher implements IpSearchConstant {
+public class IPSearcher implements IPSearchConstant {
     private static final Object LOCK = new Object();
     private static boolean memory_mode_load = false;
-    private static boolean firstSearch = true;
     /**
      * for memory mode
      */
@@ -39,8 +37,14 @@ public class Searcher implements IpSearchConstant {
      */
     private static byte[] dataRegion = null;
 
-    public static DataBlock memorySearch(long tagip) {
-        int ip = (int) tagip;
+    /**
+     * memorySearch ip
+     *
+     * @param targetIp ip
+     * @return
+     */
+    public static DataBlock memorySearch(long targetIp) {
+        int ip = (int) targetIp;
         // load data
         if (!memory_mode_load) {
             synchronized (LOCK) {
@@ -62,32 +66,28 @@ public class Searcher implements IpSearchConstant {
         int dataPtr = ipRegionPtr[index >> 1];
         short len = ipRegionLen[index >> 1];
         String region = new String(dataRegion, dataPtr, len, StandardCharsets.UTF_8).trim();
-
-        //---------------
-        // used internal memory
-        if (firstSearch && devDebug) {
-            long sizeOfCollection1 = RamUsageEstimator.sizeOf(ipRegionPtr);
-            long sizeOfCollection2 = RamUsageEstimator.sizeOf(dataRegion);
-            long sizeOfCollection3 = RamUsageEstimator.sizeOf(ipRegionPtr);
-            long sizeOfCollection4 = RamUsageEstimator.sizeOf(ipRegionLen);
-            String humanReadableUnits1 = RamUsageEstimator.humanReadableUnits(sizeOfCollection1);
-            String humanReadableUnits2 = RamUsageEstimator.humanReadableUnits(sizeOfCollection2);
-            String humanReadableUnits3 = RamUsageEstimator.humanReadableUnits(sizeOfCollection3);
-            String humanReadableUnits4 = RamUsageEstimator.humanReadableUnits(sizeOfCollection4);
-            System.out.println("ipRegions humanSizeOf:" + humanReadableUnits1);
-            System.out.println("dataRegion humanSizeOf:" + humanReadableUnits2);
-            System.out.println("ipRegions humanSizeOf:" + humanReadableUnits3);
-            System.out.println("ipRegionLen humanSizeOf:" + humanReadableUnits4);
-            firstSearch = false;
-        }
-        //--------------
         return new DataBlock(region, dataPtr);
     }
 
+    /**
+     * memorySearch
+     *
+     * @param ip ip
+     * @return
+     */
     public static DataBlock memorySearch(String ip) {
         return memorySearch(ByteUtil.ipToLong(ip));
     }
 
+    /**
+     * binarySearch
+     *
+     * @param arr
+     * @param low
+     * @param high
+     * @param searchNumber
+     * @return
+     */
     private static int binarySearch(int[] arr, int low, int high, long searchNumber) {
         int mid;
         while (low <= high) {
@@ -149,8 +149,14 @@ public class Searcher implements IpSearchConstant {
 
     }
 
+    /**
+     * deserialization
+     *
+     * @param searchInfoBytes json bytes
+     */
     private static void deserialization(byte[] searchInfoBytes) {
-        List<ArrayList> jsonArray = JSONArray.parseArray(new String(searchInfoBytes, StandardCharsets.UTF_8), ArrayList.class);
+        String unzipJsonStr = ByteUtil.unzipString(searchInfoBytes);
+        List<ArrayList> jsonArray = JSONArray.parseArray(unzipJsonStr, ArrayList.class);
         ArrayList arrayList0 = jsonArray.get(0);
         ArrayList arrayList1 = jsonArray.get(1);
         ArrayList arrayList2 = jsonArray.get(2);

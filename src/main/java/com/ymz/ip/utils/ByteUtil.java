@@ -1,12 +1,13 @@
 package com.ymz.ip.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Objects;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 /**
  * byte utils
@@ -56,19 +57,6 @@ public class ByteUtil {
     }
 
     /**
-     * get a long from a byte array start from the specifiled offset
-     *
-     * @param src
-     * @param offset
-     * @return
-     */
-    public static long get64Long(byte[] src, int offset) {
-        byte[] bytes = new byte[8];
-        bytesArrPutOffSrc(bytes, offset, src);
-        return byteArrayToLong(bytes);
-    }
-
-    /**
      * get int
      *
      * @param src
@@ -79,12 +67,6 @@ public class ByteUtil {
         byte[] bytes = new byte[4];
         bytesArrPutOffSrc(bytes, offset, src);
         return byteArrayToInt(bytes);
-    }
-
-    public static short getShort(byte[] src, int offset) {
-        byte[] bytes = new byte[2];
-        bytesArrPutOffSrc(bytes, offset, src);
-        return byteArrayToShort(bytes);
     }
 
     /**
@@ -98,63 +80,6 @@ public class ByteUtil {
     public static void write32Long(byte[] tag, int offset, long v) {
         byte[] bytes = intToByteArray((int) v);
         bytesArrPutOffTag(tag, offset, bytes);
-    }
-
-    /**
-     * write a 64-bit long to a byte array
-     *
-     * @param tag
-     * @param offset
-     * @param v
-     */
-    public static void write64Long(byte[] tag, int offset, long v) {
-        byte[] bytes = longToByteArray(v);
-        bytesArrPutOffTag(tag, offset, bytes);
-    }
-
-    /**
-     * write a int to a byte array
-     *
-     * @param tag
-     * @param offset
-     * @param v
-     */
-    public static void writeInt(byte[] tag, int offset, int v) {
-        byte[] bytes = intToByteArray(v);
-        bytesArrPutOffTag(tag, offset, bytes);
-    }
-
-    /**
-     * write a short to a byte array
-     *
-     * @param tag
-     * @param offset
-     * @param v
-     */
-    public static void writeShort(byte[] tag, int offset, short v) {
-        byte[] bytes = shortToByteArray(v);
-        bytesArrPutOffTag(tag, offset, bytes);
-    }
-
-    /**
-     * int to byte
-     *
-     * @param x
-     * @return
-     */
-    public static byte intToByte(int x) {
-        return (byte) x;
-    }
-
-    /**
-     * byte to int
-     *
-     * @param b
-     * @return
-     */
-    public static int byteToInt(byte b) {
-        //Java always treats byte as signed; we can get its unsigned value by binary-summing it with 0xFF
-        return b & 0xFF;
     }
 
     /**
@@ -186,23 +111,11 @@ public class ByteUtil {
     }
 
     /**
-     * put a 64 bit long value into an 8 byte byte array
+     * put a 64 bit long value into a 32 byte byte array
      *
-     * @param num
+     * @param val
+     * @return
      */
-    public static byte[] longToByteArray(long num) {
-        return new byte[]{
-                (byte) ((num >> 56) & 0xFF),
-                (byte) ((num >> 48) & 0xFF),
-                (byte) ((num >> 40) & 0xFF),
-                (byte) ((num >> 32) & 0xFF),
-                (byte) ((num >> 24) & 0xFF),
-                (byte) ((num >> 16) & 0xFF),
-                (byte) ((num >> 8) & 0xFF),
-                (byte) ((num) & 0xFF)
-        };
-    }
-
     public static byte[] longTo32ByteArray(long val) {
         int num = (int) val;
         return new byte[]{
@@ -211,23 +124,6 @@ public class ByteUtil {
                 (byte) ((num >> 8) & 0xFF),
                 (byte) (num & 0xFF)
         };
-    }
-
-    /**
-     * convert an 8-byte byte array into a 64-bit long value
-     *
-     * @param byteArray
-     * @return the converted long value
-     */
-    public static long byteArrayToLong(byte[] byteArray) {
-        return ((((long) byteArray[0] & 0xff) << 56)
-                | (((long) byteArray[1] & 0xff) << 48)
-                | (((long) byteArray[2] & 0xff) << 40)
-                | (((long) byteArray[3] & 0xff) << 32)
-                | (((long) byteArray[4] & 0xff) << 24)
-                | (((long) byteArray[5] & 0xff) << 16)
-                | (((long) byteArray[6] & 0xff) << 8)
-                | (((long) byteArray[7] & 0xff)));
     }
 
     /**
@@ -244,13 +140,53 @@ public class ByteUtil {
     }
 
     /**
-     * convert an 2-byte byte array into short
+     * ip to int
      *
-     * @param bytes
+     * @param ip
      * @return
      */
-    public static short byteArrayToShort(byte[] bytes) {
-        return (short) ((0xff & bytes[0]) | (0xff00 & (bytes[1] << 8)));
+    public static int ipToInteger(String ip) {
+        String[] ips = ip.split("\\.");
+        int ipFour = 0;
+        for (String ip4 : ips) {
+            int ip4a = Integer.parseInt(ip4);
+            ipFour = (ipFour << 8) | ip4a;
+        }
+        return ipFour;
+    }
+
+    /**
+     * int to a ip string
+     *
+     * @param ip
+     * @return
+     */
+    public static String integerToIp(Integer ip) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 3; i >= 0; i--) {
+            int ipa = (ip >> (8 * i)) & (0xff);
+            sb.append(ipa).append(".");
+        }
+        sb.delete(sb.length() - 1, sb.length());
+        return sb.toString();
+    }
+
+    /**
+     * string ip to long ip
+     *
+     * @param ip
+     * @return long
+     */
+    public static long ipToLong(String ip) {
+        String[] p = ip.split("\\.");
+        if (p.length != 4) {
+            return 0;
+        }
+        int p1 = ((Integer.parseInt(p[0]) << 24) & 0xFF000000);
+        int p2 = ((Integer.parseInt(p[1]) << 16) & 0x00FF0000);
+        int p3 = ((Integer.parseInt(p[2]) << 8) & 0x0000FF00);
+        int p4 = ((Integer.parseInt(p[3])) & 0x000000FF);
+        return ((p1 | p2 | p3 | p4) & 0xFFFFFFFFL);
     }
 
     /**
@@ -328,107 +264,65 @@ public class ByteUtil {
         }
     }
 
+    /**
+     * get path of file
+     *
+     * @param fileName
+     * @return
+     */
     public static String getPath(String fileName) {
         return Objects.requireNonNull(ByteUtil.class.getClassLoader().getResource("")).getPath() + fileName;
     }
 
     /**
-     * ip to int
+     * compress str
      *
-     * @param ip
+     * @param unzip
      * @return
      */
-    public static int ipToInteger(String ip) {
-        String[] ips = ip.split("\\.");
-        int ipFour = 0;
-        for (String ip4 : ips) {
-            int ip4a = Integer.parseInt(ip4);
-            ipFour = (ipFour << 8) | ip4a;
+    public static byte[] zipString(String unzip) {
+        // 0 ~ 9 compress level
+        Deflater deflater = new Deflater(9);
+        deflater.setInput(unzip.getBytes());
+        deflater.finish();
+
+        final byte[] bytes = new byte[1024];
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024);
+
+        while (!deflater.finished()) {
+            int length = deflater.deflate(bytes);
+            outputStream.write(bytes, 0, length);
         }
-        return ipFour;
+
+        deflater.end();
+        return outputStream.toByteArray();
     }
 
     /**
-     * int to a ip string
+     * unCompress str
      *
-     * @param ip
+     * @param zip
      * @return
      */
-    public static String integerToIp(Integer ip) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 3; i >= 0; i--) {
-            int ipa = (ip >> (8 * i)) & (0xff);
-            sb.append(ipa).append(".");
-        }
-        sb.delete(sb.length() - 1, sb.length());
-        return sb.toString();
-    }
+    public static String unzipString(byte[] zip) {
 
-    /**
-     * string ip to long ip
-     *
-     * @param ip
-     * @return long
-     */
-    public static long ipToLong(String ip) {
-        String[] p = ip.split("\\.");
-        if (p.length != 4) {
-            return 0;
-        }
-        int p1 = ((Integer.parseInt(p[0]) << 24) & 0xFF000000);
-        int p2 = ((Integer.parseInt(p[1]) << 16) & 0x00FF0000);
-        int p3 = ((Integer.parseInt(p[2]) << 8) & 0x0000FF00);
-        int p4 = ((Integer.parseInt(p[3])) & 0x000000FF);
-        return ((p1 | p2 | p3 | p4) & 0xFFFFFFFFL);
-    }
+        Inflater inflater = new Inflater();
+        inflater.setInput(zip);
 
-    /**
-     * int to ip string
-     *
-     * @param ip
-     * @return string
-     */
-    public static String longToIp(long ip) {
-        return String.valueOf((ip >> 24) & 0xFF) + '.' +
-                ((ip >> 16) & 0xFF) + '.' +
-                ((ip >> 8) & 0xFF) + '.' +
-                ((ip) & 0xFF);
-    }
+        final byte[] bytes = new byte[1024];
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024);
 
-    public static boolean isBlank(CharSequence cs) {
-        int strLen;
-        if (cs != null && (strLen = cs.length()) != 0) {
-            for (int i = 0; i < strLen; ++i) {
-                if (!Character.isWhitespace(cs.charAt(i))) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * @param filename
-     * @return
-     */
-    public static byte[] fileToByteArray(String filename) {
-
-        FileChannel fc = null;
         try {
-            fc = new RandomAccessFile(filename, "r").getChannel();
-            MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size()).load();
-            byte[] result = new byte[(int) fc.size()];
-            if (byteBuffer.remaining() > 0) {
-                byteBuffer.get(result, 0, byteBuffer.remaining());
+            while (!inflater.finished()) {
+                int length = inflater.inflate(bytes);
+                outputStream.write(bytes, 0, length);
             }
-            return result;
-        } catch (IOException e) {
+        } catch (DataFormatException e) {
             e.printStackTrace();
+            return "";
         } finally {
-            ezIOClose(fc);
+            inflater.end();
         }
-        return null;
+        return outputStream.toString();
     }
 }
